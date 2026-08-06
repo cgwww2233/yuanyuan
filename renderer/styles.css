@@ -1,0 +1,103 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+  font-family: "PingFang SC", "Microsoft YaHei", "Hiragino Sans GB", sans-serif;
+}
+
+#stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+#petCanvas {
+  display: block;
+  /* 尺寸/位置由 engine.setSize 按窗口精确设定：canvas 是 BASE×BASE 的正方形，
+     并下移到顶部气泡带之下。这里不写 width/height:100%，避免被窗口高度拉伸变形。 */
+}
+
+/* 对话气泡 */
+.bubble {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-6px);
+  max-width: 92%;
+  padding: 7px 12px;
+  background: rgba(255, 255, 255, 0.96);
+  color: #4a2b4f;
+  font-size: 13px;
+  line-height: 1.45;
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(120, 80, 140, 0.28);
+  border: 1px solid rgba(180, 140, 200, 0.4);
+  text-align: center;
+  /* 台词有长有短，之前 nowrap + 省略号会把长句直接截断 */
+  white-space: normal;
+  word-break: break-word;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+.bubble.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.bubble.hidden { display: none; }
+
+/* 睡觉 Zzz */
+.zzz {
+  position: absolute;
+  top: 14px;
+  right: 18%;
+  font-size: 18px;
+  font-weight: 600;
+  color: #8a6fb0;
+  opacity: 0.9;
+  animation: zzzFloat 2.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.zzz.hidden { display: none; }
+@keyframes zzzFloat {
+  0% { transform: translateY(4px) rotate(-6deg); opacity: 0.4; }
+  50% { transform: translateY(-6px) rotate(6deg); opacity: 1; }
+  100% { transform: translateY(4px) rotate(-6deg); opacity: 0.4; }
+}
+
+/* 右键菜单 */
+.ctx-menu {
+  position: absolute;
+  min-width: 124px;
+  background: rgba(40, 30, 50, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  z-index: 10;
+  /* 仅浏览器调试环境使用这份菜单；项目多，窗口只有 360px，必须能滚 */
+  max-height: 300px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+}
+.ctx-menu.hidden { display: none; }
+.ctx-item {
+  padding: 6px 12px;
+  font-size: 13px;
+  color: #f3eef7;
+  border-radius: 7px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.ctx-item:hover { background: rgba(150, 110, 180, 0.5); }

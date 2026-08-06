@@ -1,0 +1,46 @@
+{
+  "name": "yuanyuan",
+  "version": "1.0.0",
+  "description": "园园 - 一个会陪你的桌面小魔女",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "scan": "python3 tools/scan_assets.py",
+    "dist": "node node_modules/electron-builder/cli.js"
+  },
+  "author": "CGW",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^43.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.cgw.yuanyuan",
+    "productName": "园园",
+    "copyright": "Copyright © 2026 CGW",
+    "files": [
+      "**/*",
+      "!tools/**",
+      "!**/*.log",
+      "!_bbox*.py",
+      "!_mkicon.py"
+    ],
+    "extraResources": [
+      {
+        "from": "../Material",
+        "to": "Material"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico",
+      "sign": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "园园"
+    }
+  }
+}
