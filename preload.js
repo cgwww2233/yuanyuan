@@ -3,11 +3,11 @@ const { contextBridge, ipcRenderer, app } = require('electron');
 const path = require('path');
 
 // 在渲染进程脚本（assets-manifest.js / config.js）执行前注入「运行时素材根目录」：
-// 打包后指向 resources/Material，开发期指向 ../Material。
+// 打包后指向 resources/Material，开发期指向项目内的 Material（与仓库一同提交，克隆即可用）。
 // assets-manifest.js 会用 window.ASSET_BASE || 开发回退，从而装到任意机器都能读到素材。
 const _materialRoot = (app.isPackaged
   ? path.join(process.resourcesPath, 'Material')
-  : path.join(__dirname, '..', '..', 'Material')).replace(/\\/g, '/');
+  : path.join(__dirname, 'Material')).replace(/\\/g, '/');
 window.ASSET_BASE = _materialRoot;
 
 const api = {

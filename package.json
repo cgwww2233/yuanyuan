@@ -21,13 +21,14 @@
     "files": [
       "**/*",
       "!tools/**",
+      "!Material/**",
       "!**/*.log",
       "!_bbox*.py",
       "!_mkicon.py"
     ],
     "extraResources": [
       {
-        "from": "../Material",
+        "from": "Material",
         "to": "Material"
       }
     ],

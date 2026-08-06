@@ -142,7 +142,7 @@ def main():
         'poses': poses,
     }
     js = '// 本文件由 tools/scan_assets.py 自动生成，勿手动修改\n'
-    js += 'window.ASSET_BASE = window.ASSET_BASE || ' + json.dumps(manifest['base'], ensure_ascii=False) + ';\n'
+    js += 'window.ASSET_BASE = window.ASSET_BASE || ".";\n'
     manifest_json = json.dumps(manifest, ensure_ascii=False, indent=2)
     # 让素材根目录跟随运行时注入的 window.ASSET_BASE（打包后指向 resources/Material），
     # 不再写死开发机绝对路径，避免装到别的机器白屏。

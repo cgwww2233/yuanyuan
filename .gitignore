@@ -16,3 +16,9 @@ Thumbs.db
 
 # npm 本地缓存（构建用，不入库）
 .npmcache/
+
+# Material 内开发/中间产物（不入库，运行时不需要）
+Material/.workbuddy/
+Material/frames_extracted/
+Material/frames_transparent.zip
+Material/test_result_new.png
