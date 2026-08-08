@@ -1,14 +1,24 @@
 'use strict';
-const { contextBridge, ipcRenderer, app } = require('electron');
+const { contextBridge, ipcRenderer } = require('electron');
 const path = require('path');
+const fs = require('fs');
 
-// 在渲染进程脚本（assets-manifest.js / config.js）执行前注入「运行时素材根目录」：
-// 打包后指向 resources/Material，开发期指向项目内的 Material（与仓库一同提交，克隆即可用）。
-// assets-manifest.js 会用 window.ASSET_BASE || 开发回退，从而装到任意机器都能读到素材。
-const _materialRoot = (app.isPackaged
-  ? path.join(process.resourcesPath, 'Material')
-  : path.join(__dirname, 'Material')).replace(/\\/g, '/');
-window.ASSET_BASE = _materialRoot;
+// 在渲染进程脚本（assets-manifest.js / config.js）执行前注入「运行时素材根目录」。
+// 注意：preload 运行在渲染进程上下文，主进程专属的 app 模块在这里不可用，
+// 所以不依赖 app.isPackaged，改为按路径存在性判断素材目录：
+//   1) 打包后素材在 resources/Material
+//   2) 开发期在项目内 Material（随仓库提交，克隆即可用）
+//   3) 兼容外层 Material（旧目录布局）
+const _candidates = [
+  path.join(process.resourcesPath || '', 'Material'), // 打包后
+  path.join(__dirname, 'Material'),                   // 项目内（仓库）
+  path.join(__dirname, '..', 'Material'),              // 外层兼容
+];
+var _materialRoot = path.join(__dirname, 'Material');
+for (var i = 0; i < _candidates.length; i++) {
+  if (_candidates[i] && fs.existsSync(_candidates[i])) { _materialRoot = _candidates[i]; break; }
+}
+window.ASSET_BASE = _materialRoot.replace(/\\/g, '/');
 
 const api = {
   getMaterialPath: () => ipcRenderer.invoke('get-material-path'),

@@ -18,6 +18,7 @@
     "appId": "com.cgw.yuanyuan",
     "productName": "园园",
     "copyright": "Copyright © 2026 CGW",
+    "icon": "build/icon.ico",
     "files": [
       "**/*",
       "!tools/**",
@@ -41,7 +42,9 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "园园"
+      "shortcutName": "园园",
+      "installerIcon": "build/icon.ico",
+      "uninstallerIcon": "build/icon.ico"
     }
   }
 }

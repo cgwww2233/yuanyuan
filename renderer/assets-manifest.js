@@ -1,7 +1,7 @@
 // 本文件由 tools/scan_assets.py 自动生成，勿手动修改
 window.ASSET_BASE = window.ASSET_BASE || ".";
 window.ASSET_MANIFEST = {
-  "base": window.ASSET_BASE,
+  "base": ".",
   "animations": {
     "covering_face": {
       "dir": "frames_transparent/covering_face",

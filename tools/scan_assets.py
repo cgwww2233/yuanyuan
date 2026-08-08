@@ -135,8 +135,11 @@ def main():
         animations['smoke'] = smoke
     eyes = scan_eyes()
     poses = scan_poses()
+    # base 固定为 "."：真正的素材根目录由运行期 preload 注入 window.ASSET_BASE
+    # （打包后 resources/Material，开发期项目内 Material），manifest 里只留合法 JSON 占位，
+    # 既能被 main.js 的 JSON.parse 正常解析，也不会把开发机绝对路径写死进仓库。
     manifest = {
-        'base': MATERIAL.replace('\\', '/'),
+        'base': '.',
         'animations': animations,
         'eyes': eyes,
         'poses': poses,
@@ -144,9 +147,6 @@ def main():
     js = '// 本文件由 tools/scan_assets.py 自动生成，勿手动修改\n'
     js += 'window.ASSET_BASE = window.ASSET_BASE || ".";\n'
     manifest_json = json.dumps(manifest, ensure_ascii=False, indent=2)
-    # 让素材根目录跟随运行时注入的 window.ASSET_BASE（打包后指向 resources/Material），
-    # 不再写死开发机绝对路径，避免装到别的机器白屏。
-    manifest_json = manifest_json.replace('"base": ' + json.dumps(manifest['base'], ensure_ascii=False), '"base": window.ASSET_BASE')
     js += 'window.ASSET_MANIFEST = ' + manifest_json + ';\n'
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     with open(OUT, 'w', encoding='utf-8') as f:

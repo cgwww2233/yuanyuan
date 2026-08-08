@@ -5,8 +5,6 @@ window.YY = window.YY || {};
 
   var BASE = 360; // 逻辑绘制空间
   var BUBBLE_BAND = 80; // 窗口顶部预留给对话气泡的透明带（逻辑 px）。角色绘制大小/位置不变，canvas 整体下移到带下方。
-  var CROP_PAD = 0.06;   // 内容包围盒向外留白比例：避免边缘软光/发丝被切，也不贴边像被框
-  var CROP_FILL = 0.90;  // 裁剪后内容占画布比例（<1 留边，避免角色被框在看不见的方框里）
 
   var S = {
     canvas: null, ctx: null, dpr: 1, scale: 1,
@@ -14,97 +12,23 @@ window.YY = window.YY || {};
     onEnd: null, ended: false, acc: 0, lastTime: 0,
     eyeOverlay: null, eyeMode: 'base', token: 0,
     flipped: false, hitBroken: false,
-    cropToContent: false,
-    animShared: false, animScale: 0, // 多帧动画统一缩放：尺寸一致且留边，不被框死
   };
 
   // 命中测试用的小离屏画布：只在需要时按当前帧重绘一次，
   // 避免对主画布做 getImageData（GPU 回读会卡帧）。
   var HIT = { canvas: null, ctx: null, size: 96 };
 
-  // 静态图（如跟随鼠标的眼神帧、睡姿、被拎起）的内容包围盒缓存，
-  // 避免每次重绘都重新读像素。键用 img.src 或 toString 兜底。
-  var IMG_BBOX = {};
-
   function fitContain(w, h, maxW, maxH, pad) {
     var s = Math.min(maxW / w, maxH / h) * (pad || 1);
     return { s: s, dw: w * s, dh: h * s };
   }
 
-  // 计算图片中非透明内容包围盒（用于 2048×2048 大贴纸图裁剪）。
-  // 先缩放到最大 512px 加速像素读取，再映射回原图坐标。
-  function measureBBox(img) {
-    var key = img.src || String(img);
-    if (IMG_BBOX[key] !== undefined) return IMG_BBOX[key];
-    var w = img.width || 0, h = img.height || 0;
-    if (!w || !h) { IMG_BBOX[key] = null; return null; }
-    var maxDim = 512;
-    var scale = Math.min(1, maxDim / Math.max(w, h));
-    var sw = Math.max(1, Math.round(w * scale));
-    var sh = Math.max(1, Math.round(h * scale));
-    var c = document.createElement('canvas');
-    c.width = sw; c.height = sh;
-    var x = c.getContext('2d');
-    x.drawImage(img, 0, 0, sw, sh);
-    try {
-      var d = x.getImageData(0, 0, sw, sh).data;
-    } catch (e) {
-      IMG_BBOX[key] = null;
-      return null;
-    }
-    var minX = sw, minY = sh, maxX = 0, maxY = 0, cnt = 0;
-    for (var y = 0; y < sh; y++) {
-      var row = y * sw;
-      for (var x = 0; x < sw; x++) {
-        var a = d[(row + x) * 4 + 3];
-        if (a > 12) {
-          cnt++;
-          if (x < minX) minX = x;
-          if (x > maxX) maxX = x;
-          if (y < minY) minY = y;
-          if (y > maxY) maxY = y;
-        }
-      }
-    }
-    if (cnt === 0) { IMG_BBOX[key] = null; return null; }
-    var inv = 1 / scale;
-    var bbox = {
-      sx: Math.max(0, Math.floor(minX * inv)),
-      sy: Math.max(0, Math.floor(minY * inv)),
-      sw: Math.min(w, Math.ceil((maxX - minX + 1) * inv)),
-      sh: Math.min(h, Math.ceil((maxY - minY + 1) * inv)),
-    };
-    IMG_BBOX[key] = bbox;
-    return bbox;
-  }
-
   function drawBody(ctx, img) {
-    var key = img.src || String(img);
-    var fb = S.cropToContent ? (IMG_BBOX[key] || measureBBox(img)) : null;
-    if (!fb) {
-      // 不裁剪：整张图等比缩放（仅烟雾等全屏特效走这里）
-      var f0 = fitContain(img.width, img.height, BASE, BASE, 0.98);
-      ctx.drawImage(img, 0, 0, img.width, img.height, (BASE - f0.dw) / 2, BASE - f0.dh, f0.dw, f0.dh);
-      return;
-    }
-    // 内容包围盒向外留白：避免边缘软光/发丝被切，也避免角色贴边像被框在看不见的方框里
-    var px = Math.round(fb.sw * CROP_PAD), py = Math.round(fb.sh * CROP_PAD);
-    var sx = Math.max(0, fb.sx - px);
-    var sy = Math.max(0, fb.sy - py);
-    var sw = Math.min(img.width - sx, fb.sw + px * 2);
-    var sh = Math.min(img.height - sy, fb.sh + py * 2);
-    var s, dw, dh;
-    if (S.animShared && S.animScale) {
-      // 多帧动画：整段共用一个缩放系数，保证人物大小稳定、不逐帧抖动
-      s = S.animScale;
-    } else {
-      // 单帧/静态图：按留白后的内容填充 CROP_FILL（<1 留边）
-      s = Math.min(BASE / sw, BASE / sh) * CROP_FILL;
-    }
-    dw = sw * s; dh = sh * s;
-    var dx = (BASE - dw) / 2;  // 水平居中
-    var dy = BASE - dh;        // 底部对齐（脚踩地）
-    ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+    // 整张图等比缩放并底部对齐（不做内容裁剪，避免把角色裁到角落或框死）
+    var f = fitContain(img.width, img.height, BASE, BASE, 0.98);
+    var dx = (BASE - f.dw) / 2;
+    var dy = BASE - f.dh; // 底部对齐
+    ctx.drawImage(img, 0, 0, img.width, img.height, dx, dy, f.dw, f.dh);
   }
 
   function renderTo(ctx) {
@@ -187,24 +111,6 @@ window.YY = window.YY || {};
       S.bodyFrames = frames; S.bodyIndex = 0; S.acc = 0; S.ended = false;
       S.bodyFps = (opts.fps == null ? 24 : opts.fps); S.bodyLoop = opts.loop !== false;
       S.onEnd = opts.onEnd || null;
-      S.cropToContent = opts.cropToContent === true;
-      S.animShared = false; S.animScale = 0;
-      // 多帧动画：取「所有帧中最大的（含留白）内容尺寸」算一个统一缩放系数，
-      // 这样整段动画人物大小一致、不抖动，也不会因为并集框把单帧角色框在一个看不见的方框里。
-      if (S.cropToContent && frames && frames.length > 1) {
-        var maxPadded = 0, any = false;
-        for (var fi = 0; fi < frames.length; fi++) {
-          var b = measureBBox(frames[fi]);
-          if (!b) continue;
-          any = true;
-          var d = Math.max(b.sw, b.sh) * (1 + CROP_PAD * 2);
-          if (d > maxPadded) maxPadded = d;
-        }
-        if (any && maxPadded > 0) {
-          S.animShared = true;
-          S.animScale = BASE * CROP_FILL / maxPadded;
-        }
-      }
     },
     setBodyAnim: function (animName, opts) {
       var myToken = ++S.token;
@@ -218,10 +124,8 @@ window.YY = window.YY || {};
         if (myToken === S.token && opts && opts.onEnd) setTimeout(opts.onEnd, 0);
       });
     },
-    // 静态图（眼神帧/睡姿/被拎起）按内容包围盒裁剪并留边，避免 2048×2048 大贴纸图
-    // 把人物缩成一团、又不被框死。多帧动画同理按内容裁剪（统一缩放系数见 setBodyFrames），
-    // 让角色在所有状态下都保持一致的占比、且边缘留白不被切。
-    setStatic: function (img) { ++S.token; engine.setBodyFrames([img], { loop: false, fps: 0, cropToContent: true }); },
+    // 静态图（眼神帧/睡姿/被拎起）：整张图等比缩放绘制，不做内容裁剪。
+    setStatic: function (img) { ++S.token; engine.setBodyFrames([img], { loop: false, fps: 0 }); },
     setEyeOverlay: function (img) { S.eyeOverlay = img || null; },
     setEyeMode: function (m) { S.eyeMode = m; },
     getEyeMode: function () { return S.eyeMode; },
