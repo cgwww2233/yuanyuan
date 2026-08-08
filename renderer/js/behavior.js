@@ -98,21 +98,40 @@ window.YY = window.YY || {};
     }
     YY.dialogue.say(cat, 4500);
   }
-  // 按系统日期判断节日（固定公历节日 + 几个好玩的）。返回分类 key，null 表示今天不是节日。
+  // 按系统日期判断节日：返回专属台词分类 key，null 表示今天不是节日。
+  // 公历固定节日 + 阴历节日（春节/元宵/端午/七夕/中秋，由 lunar.js 转换）。
   function holidayFor(d) {
     var m = d.getMonth() + 1, day = d.getDate();
-    var map = {
+    var solar = {
       '1-1': 'newyear', '2-14': 'valentine', '3-8': 'womensday',
       '4-1': 'aprilfool', '5-1': 'labour', '6-1': 'childrens',
       '10-1': 'nationalday', '10-31': 'halloween', '11-11': 'singles',
       '12-24': 'christmas', '12-25': 'christmas',
     };
-    return map[m + '-' + day] || null;
+    var key = solar[m + '-' + day];
+    if (key) return key;
+    // 阴历节日（每年对应的公历日不同，需转换）
+    if (L) {
+      var lu = L.solarToLunar(d.getFullYear(), m, day);
+      if (lu) {
+        var lk = lu.lMonth + '-' + lu.lDay + (lu.isLeap ? 'L' : '');
+        var lunarMap = {
+          '1-1': 'springfestival', '1-15': 'lantern', '5-5': 'dragonboat',
+          '7-7': 'qixi', '8-15': 'midautumn',
+        };
+        if (lunarMap[lk]) return lunarMap[lk];
+      }
+    }
+    return null;
   }
-  // 开机或跨午夜时说一句节日彩蛋（受 holidayEnabled 开关控制）
+  // 开机或跨午夜时说一句节日彩蛋（受 holidayEnabled 开关控制）。
+  // 命中具体节日就说专属台词；若该分类暂无台词则回退通用 holiday。
   function sayHoliday() {
     if (!(YY.settings && YY.settings.holidayEnabled)) return;
-    if (holidayFor(new Date())) YY.dialogue.say('holiday');
+    var key = holidayFor(new Date());
+    if (!key) return;
+    var cat = (YY.dialogue && YY.dialogue.LINES && YY.dialogue.LINES[key]) ? key : 'holiday';
+    YY.dialogue.say(cat);
   }
   // 纪念日：设置里填 "MM-DD"（如 "05-20"），每年这一天触发彩蛋（受 anniversaryDate 是否填写控制）
   function isAnniversary(d) {
@@ -541,6 +560,16 @@ window.YY = window.YY || {};
     // 睡着时点她 = 叫醒（这是主动意图）；鼠标只是划过不会唤醒（见 onCursor）
     if (S.state === 'SLEEP') { enterWake(); return; }
     if (S.throwTimer) return;   // 飞行中点击不反应，得抓住她才算接住
+    // 生日当天：每次点击都明确说"小寿星…"，让生日提醒更明显（覆盖普通单击反应）
+    if (YY.reminders && YY.reminders.getR && YY.reminders.isBirthdayToday) {
+      var _r = YY.reminders.getR();
+      if (_r.birthday && _r.birthday.enabled && YY.reminders.isBirthdayToday(_r.birthday)) {
+        noteInteraction();
+        if (hasAnim('heart')) enterReact('heart', 'birthday_click');
+        else YY.dialogue.say('birthday_click');
+        return;
+      }
+    }
     // 先判连续点击：狂点→闹脾气（且不再给 +6 好感度，否则会和"烦"的扣分相互抵消）
     if (trackClickSpam()) return;
     noteInteraction();
@@ -925,7 +954,10 @@ window.YY = window.YY || {};
     var dk = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
     if (dk !== lastDateKey) {
       lastDateKey = dk;
-      if (YY.settings && YY.settings.holidayEnabled && holidayFor(d)) YY.dialogue.say('holiday');
+      if (YY.settings && YY.settings.holidayEnabled) {
+        var hk = holidayFor(d);
+        if (hk) YY.dialogue.say((YY.dialogue && YY.dialogue.LINES && YY.dialogue.LINES[hk]) ? hk : 'holiday');
+      }
       if (isAnniversary(d)) YY.dialogue.say('anniversary');   // 纪念日（设置里填了日期才会在跨日时触发）
     }
     if (seg !== lastSegment) {

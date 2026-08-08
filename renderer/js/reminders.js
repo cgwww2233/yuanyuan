@@ -61,8 +61,8 @@ window.YY = window.YY || {};
     };
   }
 
-  // 防重复触发：生日每年一次（按年），生理期每个「被点选的日子」每月一次（按 年-月-日）
-  var fired = { birthdayKey: '', periodKey: 0 };
+  // 防重复触发：生日每年一次（按 年-日历）；生理期用「最近一次提醒时间 + 随机间隔」实现"时不时"提醒
+  var fired = { birthdayKey: '', periodLast: 0, periodGap: 0 };
 
   function pad(n) { return n < 10 ? '0' + n : '' + n; }
   function today() {
@@ -93,22 +93,26 @@ window.YY = window.YY || {};
     var name = (bd && bd.name) || '宝贝';
     var age = (bd && bd.year && bd.year > 0) ? (new Date().getFullYear() - bd.year) : null;
     var prefix = (which === 'lunar') ? '阴历生日快乐' : '生日快乐';
-    YY.dialogue.showBubble('叮咚～今天有个小惊喜 🎁', 2600);
-    setTimeout(function () {
-      if (YY.behavior && YY.behavior.playAction) YY.behavior.playAction('spinning');
-    }, 900);
-    setTimeout(function () {
-      if (!canFire()) return;
-      var msg = '🎂 ' + prefix + '，' + name + '！园园也超爱你～';
-      if (age != null && age >= 0 && age < 200) msg = '🎂 ' + prefix + '，' + name + '！今年 ' + age + ' 岁啦～园园也超爱你 💕';
-      YY.dialogue.showBubble(msg, 6500);
-      if (YY.behavior && YY.behavior.playAction) YY.behavior.playAction('heart');
-    }, 2200);
+    // 一句清爽、停留更久（8s），不再错峰连发导致"话多又看不清"
+    var msg = '🎂 ' + prefix + '，' + name + '！园园也超爱你～';
+    if (age != null && age >= 0 && age < 200) msg = '🎂 ' + prefix + '，' + name + '！今年 ' + age + ' 岁啦～园园也超爱你 💕';
+    YY.dialogue.showBubble(msg, 8000);
+    if (YY.behavior && YY.behavior.playAction) {
+      setTimeout(function () { if (canFire()) YY.behavior.playAction('heart'); }, 700);
+    }
   }
 
   function remindPeriod(note) {
     if (!canFire()) return;
-    var msg = note && note.trim() ? note.trim() : '今天要记得好好照顾自己哦，别太累～';
+    // 若用户在设置里填了自定义话，就用它；否则从 period 彩蛋语录里随机挑一句（更丰富）
+    var msg;
+    if (note && note.trim()) {
+      msg = note.trim();
+    } else if (YY.dialogue && YY.dialogue.LINES && YY.dialogue.LINES.period && YY.dialogue.LINES.period.length) {
+      msg = YY.dialogue.pick('period');
+    } else {
+      msg = '今天要记得好好照顾自己哦，别太累～';
+    }
     YY.dialogue.showBubble('💗 ' + msg, 6000);
     if (YY.behavior && YY.behavior.playAction) {
       setTimeout(function () { if (canFire()) YY.behavior.playAction('heart'); }, 700);
@@ -179,13 +183,17 @@ window.YY = window.YY || {};
       }
     }
 
-    // 生理期：每月点选的日子内提醒一次（每个被点选的日号独立计一次）
+    // 生理期：在设置的日子里「时不时」提醒（每隔 2.5~4.5 小时一次），温柔不啰嗦
     if (r.period.enabled) {
-      var t = today();
-      var key = t.y * 372 + (t.m - 1) * 31 + t.d; // 按真实年月日去重，每月每号仅一次
-      if (periodInDays(r.period) && fired.periodKey !== key) {
-        fired.periodKey = key;
-        remindPeriod(r.period.note);
+      if (periodInDays(r.period)) {
+        var tnow = Date.now();
+        if (!fired.periodLast || (tnow - fired.periodLast) > fired.periodGap) {
+          fired.periodLast = tnow;
+          fired.periodGap = (2.5 + Math.random() * 2) * 3600 * 1000; // 2.5~4.5 小时
+          remindPeriod(r.period.note);
+        }
+      } else {
+        fired.periodLast = 0; // 不在生理期了，重置计时
       }
     }
 
