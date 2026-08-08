@@ -22,3 +22,7 @@ Material/.workbuddy/
 Material/frames_extracted/
 Material/frames_transparent.zip
 Material/test_result_new.png
+
+# debug / build artifacts
+app_icon_embedded.png
+build_dist*.log
