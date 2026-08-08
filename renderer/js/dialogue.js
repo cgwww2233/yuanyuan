@@ -634,7 +634,12 @@ window.YY = window.YY || {};
     void b.offsetWidth; // 重启动画
     b.classList.add('show');
     if (b._t) clearTimeout(b._t);
-    b._t = setTimeout(function () { b.classList.remove('show'); b.classList.add('hidden'); }, dur || 3500);
+    if (!dur) {
+      // 按字数估算停留时长：短句 3.5s 起步，长句多留时间读完，封顶 9s，避免"一闪而过看不清"
+      var n = (text || '').length;
+      dur = Math.min(9000, Math.max(3500, 1400 + n * 150));
+    }
+    b._t = setTimeout(function () { b.classList.remove('show'); b.classList.add('hidden'); }, dur);
   }
 
   function say(category, dur) {
