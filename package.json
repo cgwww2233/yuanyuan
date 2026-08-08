@@ -19,6 +19,7 @@
     "productName": "园园",
     "copyright": "Copyright © 2026 CGW",
     "icon": "build/icon.ico",
+    "afterPack": "tools/afterPack.js",
     "files": [
       "**/*",
       "!tools/**",
@@ -28,15 +29,28 @@
       "!_mkicon.py"
     ],
     "extraResources": [
-      {
-        "from": "Material",
-        "to": "Material"
-      }
+      { "from": "Material/frames_transparent/covering_face", "to": "Material/frames_transparent/covering_face" },
+      { "from": "Material/frames_transparent/heart", "to": "Material/frames_transparent/heart" },
+      { "from": "Material/frames_transparent/lying_read", "to": "Material/frames_transparent/lying_read" },
+      { "from": "Material/frames_transparent/pout_angry", "to": "Material/frames_transparent/pout_angry" },
+      { "from": "Material/frames_transparent/running_happy", "to": "Material/frames_transparent/running_happy" },
+      { "from": "Material/frames_transparent/sitting_broom", "to": "Material/frames_transparent/sitting_broom" },
+      { "from": "Material/frames_transparent/sitting_read", "to": "Material/frames_transparent/sitting_read" },
+      { "from": "Material/frames_transparent/sleep", "to": "Material/frames_transparent/sleep" },
+      { "from": "Material/frames_transparent/spinning", "to": "Material/frames_transparent/spinning" },
+      { "from": "Material/frames_transparent/standing_wiggle", "to": "Material/frames_transparent/standing_wiggle" },
+      { "from": "Material/frames_transparent/typing_left", "to": "Material/frames_transparent/typing_left" },
+      { "from": "Material/frames_transparent/walk_left_right", "to": "Material/frames_transparent/walk_left_right" },
+      { "from": "Material/frames_transparent/walk_slow_left", "to": "Material/frames_transparent/walk_slow_left" },
+      { "from": "Material/frames_transparent/向左走", "to": "Material/frames_transparent/向左走" },
+      { "from": "Material/frames_transparent/起床", "to": "Material/frames_transparent/起床" },
+      { "from": "Material/动态/烟雾", "to": "Material/动态/烟雾" },
+      { "from": "Material/静态动作", "to": "Material/静态动作" }
     ],
     "win": {
       "target": "nsis",
       "icon": "build/icon.ico",
-      "sign": null
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
