@@ -118,21 +118,6 @@ function loadSettings() {
   settings.reminders = normalizeReminders(settings.reminders);
   // 动作偏好三个键做合法性校验，避免面板传来非法值 / 旧设置缺字段导致行为异常
   settings = normalizeActions(settings);
-
-  // 一次性迁移：确保生日默认是「阴历七月初一」。
-  // 仅当本机从未迁移过（旧版 / 全新安装没有该标记）时，才把生日强制修正为阴历七月初一；
-  // 用户在迁移后的新版中自行修改的生日会被 _birthdayLunar7Migrated 标记保护，不再被覆盖。
-  if (!settings._birthdayLunar7Migrated) {
-    var prevBd = (settings.reminders && settings.reminders.birthday) ? settings.reminders.birthday : {};
-    settings.reminders.birthday = {
-      enabled: prevBd.enabled !== false,
-      calendar: 'lunar', month: 7, day: 1, isLeap: false, year: 2006,
-      remindBoth: prevBd.remindBoth !== false,
-      name: (typeof prevBd.name === 'string' && prevBd.name) ? prevBd.name : '宝贝',
-    };
-    settings._birthdayLunar7Migrated = true;
-    persistSettings(true); // 立即落盘标记已迁移，下次启动不再重复
-  }
 }
 
 // 把任意（可能残缺/旧版）的 reminders 对象补全成完整新结构。
@@ -192,6 +177,12 @@ function normalizeReminders(raw) {
     bdYear = clampInt(bd.year, 1900, 2100, 0);
   } else {
     bdMonth = d.birthday.month; bdDay = d.birthday.day;
+  }
+
+  // 迁移：生日若仍是「出厂默认」（阳历 07-15 / 出生年 2006 / 同时提醒阴历），统一升级为阴历七月初一。
+  // 这样即满足"每年阴历七月初一"的需求；用户若自定义过（改了日期/年份/关掉 remindBoth），则不会命中，保持原样。
+  if (calendar === 'solar' && bdMonth === 7 && bdDay === 15 && bdYear === 2006 && bd.remindBoth !== false && bd.enabled !== false) {
+    calendar = 'lunar'; bdMonth = 7; bdDay = 1; bdIsLeap = false;
   }
 
   // ---- 生理期 ----

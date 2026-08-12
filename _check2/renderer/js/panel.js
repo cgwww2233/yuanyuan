@@ -207,11 +207,11 @@ window.addEventListener('DOMContentLoaded', function () {
     if (document.activeElement !== els.anniversaryDate) els.anniversaryDate.value = s.anniversaryDate || '';
     // 提醒设置
     var r = Object.assign({
-      birthday: { enabled: true, calendar: 'lunar', month: 7, day: 1, isLeap: false, year: 2006, name: '宝贝', remindBoth: true },
+      birthday: { enabled: true, calendar: 'solar', month: 7, day: 15, isLeap: false, year: 2006, name: '宝贝', remindBoth: true },
       period: { enabled: true, days: [14, 15, 16, 17, 18], note: '' },
       events: [],
     }, s.reminders || {});
-    var bd = Object.assign({}, { enabled: true, calendar: 'lunar', month: 7, day: 1, isLeap: false, year: 2006, name: '宝贝', remindBoth: true }, r.birthday || {});
+    var bd = Object.assign({}, { enabled: true, calendar: 'solar', month: 7, day: 15, isLeap: false, year: 2006, name: '宝贝', remindBoth: true }, r.birthday || {});
     var pd = Object.assign({}, { enabled: true, days: [14, 15, 16, 17, 18], note: '' }, r.period || {});
     els.bdEnabled.checked = bd.enabled !== false;
     // 正在编辑的输入框不要被回写，否则主进程广播回来的 settings-changed 会每敲一个字就重设值、光标跳末尾
@@ -302,7 +302,7 @@ window.addEventListener('DOMContentLoaded', function () {
     var s = YY.settings || {};
     var base = s.reminders || {};
     return {
-      birthday: Object.assign({}, { enabled: true, calendar: 'lunar', month: 7, day: 1, isLeap: false, year: 0, name: '宝贝', remindBoth: true }, base.birthday || {}),
+      birthday: Object.assign({}, { enabled: true, calendar: 'solar', month: 7, day: 15, isLeap: false, year: 0, name: '宝贝', remindBoth: true }, base.birthday || {}),
       period: Object.assign({}, { enabled: true, days: [], note: '' }, base.period || {}),
       events: Array.isArray(base.events) ? base.events : [],
     };

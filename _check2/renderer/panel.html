@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>园园 · 设置</title>
+  <link rel="stylesheet" href="panel.css" />
+</head>
+<body>
+  <div class="panel">
+    <header>
+      <div class="avatar">🧙</div>
+      <div>
+        <h1>园园</h1>
+        <p>你的桌面小魔女</p>
+      </div>
+    </header>
+
+    <section>
+      <h2>外观</h2>
+      <div class="row">
+        <label>显示大小</label>
+        <input type="range" id="scale" min="0.3" max="2" step="0.1" />
+        <span class="val" id="scaleV"></span>
+      </div>
+      <div class="row">
+        <label>动作速度</label>
+        <input type="range" id="speedMul" min="0.5" max="2" step="0.1" />
+        <span class="val" id="speedMulV"></span>
+      </div>
+    </section>
+
+    <section>
+      <h2>动作偏好</h2>
+      <p class="hint">把"她什么时候做什么动作"完全交给你定：待机怎么待着、开机播什么、单击和多次点击分别触发什么。<br>
+      <strong>每个触发条件都能从「所有动画」里多选</strong>：勾多个就每次随机播其中一个；一个都不勾 = 该触发无动作。<br>
+      待机姿态同样支持多选：勾多个就每次回待机随机选一个、并每隔一阵自动换一个；菜单「可用动作」控制右键菜单里出现哪些。</p>
+      <div class="row col">
+        <label>待机姿态 <small>（可多选 · 随机切换）</small></label>
+        <div class="anim-checks" id="idlePoses"></div>
+        <div class="mini-tools">
+          <button type="button" class="mini-btn" id="idleAll">全选</button>
+        </div>
+        <p class="hint">勾多个时，每次回到待机随机选一个，并每 20~40 秒自动换一个；一个都不勾会自动保留一个。</p>
+      </div>
+      <div class="row col">
+        <label>开机动画 <small>（可多选 · 随机）</small></label>
+        <details class="anim-details">
+          <summary>选择动画</summary>
+          <div class="anim-toolbar">
+            <button type="button" class="mini-btn" data-all="startupActions">全选</button>
+          </div>
+          <div id="startupActions" class="anim-list"></div>
+        </details>
+      </div>
+      <div class="row col">
+        <label>单击动作 <small>（可多选 · 随机）</small></label>
+        <details class="anim-details">
+          <summary>选择动画</summary>
+          <div class="anim-toolbar">
+            <button type="button" class="mini-btn" data-all="clickActions">全选</button>
+          </div>
+          <div id="clickActions" class="anim-list"></div>
+        </details>
+      </div>
+      <div class="row col">
+        <label>多次点击动作 <small>（可多选 · 随机）</small></label>
+        <details class="anim-details">
+          <summary>选择动画</summary>
+          <div class="anim-toolbar">
+            <button type="button" class="mini-btn" data-all="multiClickActions">全选</button>
+          </div>
+          <div id="multiClickActions" class="anim-list"></div>
+        </details>
+      </div>
+    </section>
+
+    <section>
+      <h2>动作速度 · 单独设置</h2>
+      <p class="hint">上方「动作速度」是全局倍率，对所有动作生效。下面可以为<strong>每个动作</strong>单独设速度：<br>
+      · 不勾「单独」→ 跟随全局；<br>
+      · 勾选「单独」→ 用下方滑块单独控制，和全局解耦，想快想慢随意调。</p>
+      <details class="anim-details">
+        <summary>展开逐个动作设置</summary>
+        <div id="animSpeedList" class="anim-list"></div>
+      </details>
+    </section>
+
+    <section>
+      <h2>可用动作</h2>
+      <p class="hint">勾选的动作才会出现在右键菜单「做个动作」里；取消勾选就从菜单隐藏。<br>
+      这里和「动作偏好」一样列出全部可触发动画（比心/捂脸/转圈/骑扫帚/散步/睡觉/各待机姿态…），全部勾上=菜单里想点哪个点哪个。</p>
+      <details class="anim-details" open>
+        <summary>展开动作开关</summary>
+        <div class="anim-toolbar">
+          <button type="button" class="mini-btn" data-all="enabledActions">全选</button>
+        </div>
+        <div id="actionToggleList" class="anim-list"></div>
+      </details>
+    </section>
+
+    <section>
+      <h2>跟随模式</h2>
+      <div class="row">
+        <label>鼠标跟随</label>
+        <input type="checkbox" id="eyeFollow" />
+      </div>
+      <div class="row">
+        <label>键盘跟随</label>
+        <input type="checkbox" id="keyboardFollow" />
+      </div>
+      <div class="row">
+        <label>灵敏度</label>
+        <input type="range" id="eyeSensitivity" min="0" max="1" step="0.05" />
+        <span class="val" id="eyeSensitivityV"></span>
+      </div>
+      <p class="hint">两种跟随决定是否响应键鼠，可组合：<br>
+      · 鼠标跟随开 → 她坐着、视线跟着鼠标转（用眼神帧当身体，不会出现重影）；<br>
+      · 键盘跟随开 → 先静止不动，检测到你敲键盘才播放打字动画，停手约 1.2 秒回到静止。<br>
+      · 想一键让她只跟随键鼠，右键菜单「行为模式 → 跟随状态」即可（自动开启上方两项）；「待机状态」则按所选待机姿态随机播放。</p>
+    </section>
+
+    <section>
+      <h2>行为</h2>
+      <div class="row">
+        <label>多久后睡觉</label>
+        <select id="idleToSleep">
+          <option value="60000">1 分钟</option>
+          <option value="180000">3 分钟</option>
+          <option value="300000">5 分钟</option>
+          <option value="600000">10 分钟</option>
+        </select>
+      </div>
+      <div class="row">
+        <label>允许散步</label>
+        <input type="checkbox" id="roamEnabled" />
+      </div>
+      <div class="row">
+        <label>散步频率</label>
+        <input type="range" id="roamChance" min="0" max="1" step="0.05" />
+        <span class="val" id="roamChanceV"></span>
+      </div>
+    </section>
+
+    <section>
+      <h2>互动 & 台词</h2>
+      <p class="hint">让园园更像一个会主动搭话的伙伴：<br>
+      · <strong>时段问候</strong>：开机和跨时段（早/午/晚/夜）按系统时间说对应问候，周末还有彩蛋；<br>
+      · <strong>离开感知</strong>：你很久不理她会说"你走啦"，光标再靠近又说"你回来啦"；久不互动还会撒娇"想你"。<br>
+      · <strong>心情系统</strong>：根据你的互动频率累积好感度——被冷落会变"寂寞"（缩起来安静看书、撒娇想你），被狂点会变"烦"；互动多了又开心起来。<br>
+      · <strong>拖拽物理</strong>：抓住她快速甩一下再松手，她会划着抛物线飞出去；飞的时候再抓住她就"接住"啦。</p>
+      <div class="row">
+        <label>时段问候</label>
+        <input type="checkbox" id="timeGreetings" />
+      </div>
+      <div class="row">
+        <label>离开感知</label>
+        <input type="checkbox" id="afkEnabled" />
+      </div>
+      <div class="row">
+        <label>纪念日</label>
+        <input type="date" id="anniversaryDate" />
+      </div>
+      <div class="row">
+        <label>当前心情</label>
+        <span class="mood-pill" id="moodPill"><i class="mood-dot" id="moodDot"></i><span id="moodText">普通</span></span>
+      </div>
+      <div class="row">
+        <label>心情系统</label>
+        <input type="checkbox" id="moodEnabled" />
+      </div>
+      <div class="row">
+        <label>拖拽物理<br><small>（扔出去接住）</small></label>
+        <input type="checkbox" id="dragThrow" />
+      </div>
+    </section>
+
+    <section>
+      <h2>感知 &amp; 关怀</h2>
+      <p class="hint">让园园更能"感知"你的状态、像个会照顾人的伙伴：<br>
+      · <strong>连续点击闹脾气</strong>：短时间狂点她会生气（重度还会噘嘴）；<br>
+      · <strong>用太久提醒休息</strong>：连续用电脑超 45 分钟劝你起来活动；<br>
+      · <strong>节日彩蛋</strong>：元旦 / 情人节 / 儿童节 / 圣诞等按系统日期说彩蛋；<br>
+      · <strong>电量低提醒</strong>：电量 &lt;20% 且没充电 → 提醒插电；<br>
+      · <strong>网络掉线提醒</strong>：断网 / 恢复各说一句；<br>
+      · <strong>系统锁屏 / 休眠</strong>：你锁屏她也说晚安躺下，解锁再醒来打招呼；<br>
+      · <strong>盯同一窗口提醒</strong>：连续盯着同一个应用超 25 分钟 → 劝你换换脑子；<br>
+      · <strong>护眼 20-20-20</strong>：每 20 分钟提醒看远处放松眼睛。</p>
+      <div class="row">
+        <label>连续点击闹脾气</label>
+        <input type="checkbox" id="clickAnnoy" />
+      </div>
+      <div class="row">
+        <label>用太久提醒休息</label>
+        <input type="checkbox" id="workReminder" />
+      </div>
+      <div class="row">
+        <label>节日彩蛋</label>
+        <input type="checkbox" id="holidayEnabled" />
+      </div>
+      <div class="row">
+        <label>电量低提醒</label>
+        <input type="checkbox" id="batteryReminder" />
+      </div>
+      <div class="row">
+        <label>网络掉线提醒</label>
+        <input type="checkbox" id="netStatus" />
+      </div>
+      <div class="row">
+        <label>系统锁屏 / 休眠反应</label>
+        <input type="checkbox" id="systemEvents" />
+      </div>
+      <div class="row">
+        <label>盯同一窗口提醒</label>
+        <input type="checkbox" id="stareReminder" />
+      </div>
+      <div class="row">
+        <label>护眼 20-20-20</label>
+        <input type="checkbox" id="eyeCare" />
+      </div>
+    </section>
+
+    <section>
+      <h2>窗口</h2>
+      <div class="row">
+        <label>鼠标穿透</label>
+        <input type="checkbox" id="clickThrough" />
+      </div>
+      <div class="row">
+        <label>全屏自动隐藏</label>
+        <input type="checkbox" id="autoHideFullscreen" />
+      </div>
+      <div class="row">
+        <label>开机自启</label>
+        <input type="checkbox" id="startOnBoot" />
+      </div>
+    </section>
+
+    <section>
+      <h2>提醒</h2>
+      <p class="hint">让园园真正派上用场：对象生日（阳历 / 阴历 二选一，每年到点一次）、生理期（每月点选的日子提醒）、还有随手记的待办提醒。<br>
+      生日与生理期在「打开电脑/到点」时她会主动冒泡；记事本到了设定时间也会提醒一次。</p>
+
+      <h3>🎂 生日</h3>
+      <div class="row">
+        <label>开启提醒</label>
+        <input type="checkbox" id="bdEnabled" />
+      </div>
+      <div class="row">
+        <label>称呼</label>
+        <input type="text" id="bdName" placeholder="宝贝" maxlength="12" />
+      </div>
+      <div class="row">
+        <label>按哪种日历</label>
+        <select id="bdCalendar">
+          <option value="solar">阳历（公历）</option>
+          <option value="lunar">阴历（农历）</option>
+        </select>
+      </div>
+      <div class="row" id="bdDateRow">
+        <label>生日</label>
+        <select id="bdMonth"></select>
+        <span class="unit" id="bdMonthUnit">月</span>
+        <select id="bdDay"></select>
+        <span class="unit" id="bdDayUnit">日</span>
+        <label class="bd-inline" id="bdLeapWrap" style="display:none;margin-left:8px;">
+          <input type="checkbox" id="bdLeap" /> 闰月
+        </label>
+      </div>
+      <div class="row" id="bdYearRow">
+        <label>出生年份<small>（选填，用于显示年龄）</small></label>
+        <input type="number" id="bdYear" min="1900" max="2100" />
+      </div>
+      <div class="row" id="bdRemindBothWrap">
+        <label>同时提醒阴历<small>（阳历生日每年另提醒一次阴历等价日）</small></label>
+        <input type="checkbox" id="bdRemindBoth" />
+      </div>
+      <p class="hint" id="bdLunarHint">今年提醒日期：自动计算中…</p>
+
+      <h3>💗 生理期</h3>
+      <div class="row">
+        <label>开启提醒</label>
+        <input type="checkbox" id="pdEnabled" />
+      </div>
+      <p class="hint">点选每个月要提醒的日子（可多选，每月到点当天提醒一次）：</p>
+      <div class="row col">
+        <div id="pdCalendar" class="pd-calendar"></div>
+        <div class="pd-cal-actions">
+          <button type="button" class="mini-btn" id="pdClear">清空</button>
+          <span class="unit" id="pdSelCount"></span>
+        </div>
+      </div>
+      <div class="row">
+        <label>备注</label>
+        <input type="text" id="pdNote" placeholder="选填，如 记得照顾好自己~" maxlength="40" />
+      </div>
+
+      <h3>📌 记事本提醒</h3>
+      <div id="evList" class="ev-list"></div>
+      <div class="ev-add">
+        <div class="ev-add-row">
+          <input type="text" id="evTitle" placeholder="要提醒的事，如 交报告" maxlength="40" />
+        </div>
+        <div class="ev-add-row">
+          <input type="date" id="evDate" />
+          <input type="time" id="evTime" />
+        </div>
+        <div class="ev-add-row">
+          <input type="text" id="evNote" placeholder="备注（选填）" maxlength="60" />
+          <button id="evAdd" class="primary">添加提醒</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="actions">
+      <button id="btnTouch">摸摸头</button>
+      <button id="btnHide">隐藏园园</button>
+      <button id="btnShow">显示园园</button>
+      <button id="btnQuit" class="danger">退出</button>
+    </section>
+
+    <footer>园园 v1.0 · 右键宠物可快速操作</footer>
+  </div>
+
+  <script src="assets-manifest.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/pose-labels.js"></script>
+  <script src="js/panel.js"></script>
+</body>
+</html>
