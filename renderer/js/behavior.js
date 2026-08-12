@@ -3,6 +3,9 @@ window.YY = window.YY || {};
 (function (YY) {
   'use strict';
 
+  // 阴历转换库（holidayFor 判定阴历节日时要用；reminders.js 同样依赖它）
+  var L = YY.lunar;
+
   var S = {
     state: 'IDLE',
     eyeMode: 'base', currentEyeDir: 'front',

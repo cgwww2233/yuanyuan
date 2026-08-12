@@ -79,7 +79,8 @@ window.YY = window.YY || {};
     // birthday.calendar: 'solar' | 'lunar'；阳历输入且 remindBoth=true 时，额外在"阴历等价日"再提醒一次；
     // year 可选仅用于"今年 X 岁"。period.days: 每月要提醒的日号数组（1-31，可多选）。events 为记事本条目数组。
     reminders: {
-      birthday: { enabled: true, calendar: 'solar', month: 7, day: 15, isLeap: false, year: 2006, name: '宝贝', remindBoth: true },
+      // 默认生日：阴历七月初一（出生年 2006 对应阳历 2006-07-15），每年按阴历七月初一触发
+      birthday: { enabled: true, calendar: 'lunar', month: 7, day: 1, isLeap: false, year: 2006, name: '宝贝', remindBoth: false },
       period: { enabled: true, days: [14, 15, 16, 17, 18], note: '' },
       events: [],
     },

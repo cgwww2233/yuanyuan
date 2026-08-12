@@ -90,8 +90,9 @@ const defaultSettings = {
   // 生日：calendar 选 'solar'（阳历）或 'lunar'（阴历）。阳历输入且 remindBoth=true 时，额外在「阴历等价日」再提醒一次；
   //       year 可选（仅用于「今年 X 岁」展示，0=不填）。阴历由 renderer/js/lunar.js 每年换算对应阳历日。
   // 生理期：days 为「每月要提醒的日号」数组（1-31，可多选），替换旧的单日+提前天数模型。
+  // 默认生日：阴历七月初一（出生年 2006 对应阳历 2006-07-15），每年按阴历七月初一触发
   reminders: {
-    birthday: { enabled: true, calendar: 'solar', month: 7, day: 15, isLeap: false, year: 2006, name: '宝贝', remindBoth: true },
+    birthday: { enabled: true, calendar: 'lunar', month: 7, day: 1, isLeap: false, year: 2006, name: '宝贝', remindBoth: false },
     period: { enabled: true, days: [14, 15, 16, 17, 18], note: '' },
     events: [],
   },
@@ -153,7 +154,7 @@ function normalizeIdlePoses(raw, legacy) {
 function normalizeReminders(raw) {
   raw = raw || {};
   var d = {
-    birthday: { enabled: true, calendar: 'solar', month: 7, day: 15, isLeap: false, year: 0, name: '宝贝' },
+    birthday: { enabled: true, calendar: 'lunar', month: 7, day: 1, isLeap: false, year: 0, name: '宝贝' },
     period: { enabled: true, days: [], note: '' },
     events: [],
   };
@@ -176,6 +177,12 @@ function normalizeReminders(raw) {
     bdYear = clampInt(bd.year, 1900, 2100, 0);
   } else {
     bdMonth = d.birthday.month; bdDay = d.birthday.day;
+  }
+
+  // 迁移：生日若仍是「出厂默认」（阳历 07-15 / 出生年 2006 / 同时提醒阴历），统一升级为阴历七月初一。
+  // 这样即满足"每年阴历七月初一"的需求；用户若自定义过（改了日期/年份/关掉 remindBoth），则不会命中，保持原样。
+  if (calendar === 'solar' && bdMonth === 7 && bdDay === 15 && bdYear === 2006 && bd.remindBoth !== false && bd.enabled !== false) {
+    calendar = 'lunar'; bdMonth = 7; bdDay = 1; bdIsLeap = false;
   }
 
   // ---- 生理期 ----
@@ -663,6 +670,10 @@ function buildTrayMenu() {
       label: '鼠标穿透', type: 'checkbox', checked: !!settings.clickThrough,
       click: (item) => updateSettings({ clickThrough: !!item.checked }),
     },
+    {
+      label: '开机自启动', type: 'checkbox', checked: !!settings.startOnBoot,
+      click: (item) => updateSettings({ startOnBoot: !!item.checked }),
+    },
     { label: '打开设置面板', click: () => createPanelWindow() },
     { type: 'separator' },
     { label: '退出园园', click: () => app.quit() },
@@ -680,6 +691,10 @@ function popupPetMenu() {
     {
       label: '鼠标穿透', type: 'checkbox', checked: !!settings.clickThrough,
       click: (item) => updateSettings({ clickThrough: !!item.checked }),
+    },
+    {
+      label: '开机自启动', type: 'checkbox', checked: !!settings.startOnBoot,
+      click: (item) => updateSettings({ startOnBoot: !!item.checked }),
     },
     { label: '打开设置面板', click: () => createPanelWindow() },
     { label: '隐藏园园', click: () => { petWindow.hide(); manualHidden = true; settings.petVisible = false; persistSettings(); buildTrayMenu(); } },
